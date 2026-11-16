@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chien-Shiung Wu — La parità spezzata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#050810;
+    --night:#0a0e1a;
+    --night2:#0e1426;
+    --gold:#d4af37;
+    --gold-bright:#f5c542;
+    --gold-deep:#8a6d1e;
+    --cyan:#00d4ff;
+    --cyan-soft:#4dd0e1;
+    --crimson:#c41e3a;
+    --crimson-bright:#e63946;
+    --cream:#f8f5f0;
+    --muted:rgba(248,245,240,.55);
+    --faint:rgba(248,245,240,.18);
+    --serif:'Cormorant Garamond',serif;
+    --sans:'Inter',-apple-system,sans-serif;
+    --cn:'Noto Serif SC',serif;
+    --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{
+    background:var(--void);
+    color:var(--cream);
+    font-family:var(--sans);
+    font-weight:300;
+    line-height:1.7;
+    overflow-x:hidden;
+    cursor:none;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(0,212,255,.07), transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(196,30,58,.08), transparent 55%),
+      radial-gradient(ellipse at 50% 50%, rgba(212,175,55,.04), transparent 70%),
+      var(--void);
+    z-index:-3;
+  }
+  body::after{
+    content:'';
+    position:fixed;inset:0;
+    background-image:
+      linear-gradient(rgba(248,245,240,.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(248,245,240,.015) 1px, transparent 1px);
+    background-size:80px 80px;
+    z-index:-2;
+    pointer-events:none;
+  }
+  #particles{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+  /* ===== Custom cursor ===== */
+  .cursor-dot,.cursor-ring{
+    position:fixed;top:0;left:0;
+    pointer-events:none;z-index:9999;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    mix-blend-mode:difference;
+  }
+  .cursor-dot{width:6px;height:6px;background:var(--gold-bright);transition:width .2s,height .2s}
+  .cursor-ring{
+    width:36px;height:36px;
+    border:1px solid rgba(212,175,55,.5);
+    transition:width .3s,height .3s,border-color .3s,opacity .3s;
+  }
+  .cursor-ring.hover{width:60px;height:60px;border-color:var(--cyan)}
+
+  /* ===== Loading ===== */
+  #loader{
+    position:fixed;inset:0;z-index:10000;
+    background:var(--void);
+    display:flex;align-items:center;justify-content:center;
+    flex-direction:column;
+    transition:opacity .8s ease, visibility .8s;
+  }
+  #loader.done{opacity:0;visibility:hidden}
+  .loader-ring{
+    width:80px;height:80px;
+    border:1px solid var(--faint);
+    border-top-color:var(--gold);
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin-bottom:24px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loader-text{
+    font-family:var(--mono);font-size:11px;letter-spacing:.4em;
+    color:var(--muted);text-transform:uppercase;
+  }
+  .loader-cn{
+    font-family:var(--cn);font-size:14px;color:var(--gold);
+    margin-top:8px;letter-spacing:.3em;
+  }
+
+  /* ===== Progress + Nav ===== */
+  #progress{
+    position:fixed;top:0;left:0;height:2px;width:0;
+    background:linear-gradient(90deg,var(--cyan),var(--gold-bright));
+    z-index:9000;box-shadow:0 0 12px var(--gold);
+  }
+  #navdots{
+    position:fixed;right:32px;top:50%;transform:translateY(-50%);
+    z-index:8000;display:flex;flex-direction:column;gap:18px;
+  }
+  .navdot{
+    width:8px;height:8px;border-radius:50%;
+    border:1px solid var(--faint);background:transparent;
+    cursor:none;position:relative;transition:all .3s;
+  }
+  .navdot.active{background:var(--gold);border-color:var(--gold);box-shadow:0 0 12px var(--gold)}
+  .navdot::after{
+    content:attr(data-label);
+    position:absolute;right:20px;top:50%;transform:translateY(-50%);
+    font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+    color:var(--muted);text-transform:uppercase;white-space:nowrap;
+    opacity:0;transition:opacity .3s;
+  }
+  .navdot:hover::after{opacity:1}
+
+  /* ===== Sections ===== */
+  section{
+    min-height:100vh;width:100%;
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+    padding:120px 8vw;
+    overflow:hidden;
+  }
+  .container{max-width:1200px;width:100%;position:relative;z-index:2}
+
+  /* ===== Typography ===== */
+  h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.05}
+  .kicker{
+    font-family:var(--mono);font-size:11px;letter-spacing:.5em;
+    text-transform:uppercase;color:var(--gold);
+    margin-bottom:32px;display:inline-block;
+    padding:6px 14px;border:1px solid var(--gold-deep);
+    border-radius:2px;
+  }
+  .kicker::before{content:'◆ ';color:var(--cyan)}
+
+  /* ===== Cover ===== */
+  #cover{text-align:center;flex-direction:column}
+  .cover-cn{
+    font-family:var(--cn);font-weight:900;
+    font-size:clamp(48px,7vw,96px);
+    color:transparent;
+    -webkit-text-stroke:1px var(--gold);
+    letter-spacing:.15em;
+    margin-bottom:24px;
+    opacity:0;
+  }
+  .cover-title{
+    font-family:var(--serif);
+    font-size:clamp(56px,10vw,160px);
+    font-weight:500;
+    letter-spacing:-.02em;
+    line-height:.9;
+    background:linear-gradient(180deg,var(--cream) 0%,var(--cream) 40%,var(--gold) 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    margin-bottom:20px;
+  }
+  .cover-title .ch{display:inline-block;opacity:0;transform:translateY(60px) rotate(8deg)}
+  .cover-sub{
+    font-family:var(--serif);font-style:italic;
+    font-size:clamp(18px,2.4vw,30px);
+    color:var(--muted);max-width:680px;margin:0 auto 40px;
+    font-weight:300;
+  }
+  .cover-dates{
+    font-family:var(--mono);font-size:13px;letter-spacing:.4em;
+    color:var(--gold);display:flex;gap:20px;justify-content:center;align-items:center;
+  }
+  .cover-dates span{display:inline-block}
+  .cover-dates .dash{width:60px;height:1px;background:var(--gold);display:inline-block}
+  .scroll-hint{
+    position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:10px;letter-spacing:.3em;
+    color:var(--muted);text-transform:uppercase;
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+  }
+  .scroll-line{
+    width:1px;height:50px;background:linear-gradient(180deg,var(--gold),transparent);
+    position:relative;overflow:hidden;
+  }
+  .scroll-line::after{
+    content:'';position:absolute;top:0;left:0;width:100%;height:20px;
+    background:var(--cream);
+    animation:scrollDown 2s ease-in-out infinite;
+  }
+  @keyframes scrollDown{0%{top:-20px}100%{top:50px}}
+
+  /* Atom on cover */
+  .cover-atom{
+    position:absolute;width:600px;height:600px;
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:1;opacity:.5;pointer-events:none;
+  }
+
+  /* ===== Chapter 1 ===== */
+  #ch1 .container{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+  .year-hero{
+    font-family:var(--serif);font-weight:300;
+    font-size:clamp(120px,20vw,280px);
+    line-height:.85;color:transparent;
+    -webkit-text-stroke:1px var(--gold);
+    position:relative;
+  }
+  .year-hero .fill{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,var(--gold-bright),var(--crimson));
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    clip-path:inset(100% 0 0 0);
+  }
+  .ch-cn-float{
+    font-family:var(--cn);font-weight:700;
+    font-size:clamp(40px,6vw,72px);
+    color:var(--crimson);opacity:.15;
+    position:absolute;pointer-events:none;
+    writing-mode:vertical-rl;
+  }
+
+  /* ===== Chapter 2 ===== */
+  .cyclotron-wrap{
+    position:relative;width:100%;max-width:520px;margin:0 auto;
+  }
+  .split-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center}
+
+  /* ===== Chapter 3 — Parity (climax) ===== */
+  #ch3{
+    background:radial-gradient(ellipse at center,rgba(196,30,58,.08),transparent 60%),var(--void);
+  }
+  .parity-stage{
+    position:relative;width:100%;max-width:900px;height:480px;margin:0 auto;
+  }
+  .parity-reveal{
+    font-family:var(--serif);font-style:italic;font-weight:500;
+    font-size:clamp(28px,4vw,52px);
+    text-align:center;line-height:1.2;
+    background:linear-gradient(90deg,var(--cyan-soft),var(--cream),var(--gold-bright));
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    margin-top:40px;
+  }
+  .parity-reveal .word{display:inline-block;opacity:0;transform:translateY(20px)}
+
+  /* ===== Chapter 4 ===== */
+  #ch4 .container{text-align:center}
+  .medal-wrap{
+    position:relative;width:280px;height:280px;margin:0 auto 50px;
+  }
+  .podium-row{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;
+    max-width:700px;margin:60px auto 0;align-items:end;
+  }
+  .podium{
+    position:relative;display:flex;flex-direction:column;align-items:center;
+  }
+  .podium-top{
+    font-family:var(--mono);font-size:11px;letter-spacing:.3em;
+    color:var(--muted);margin-bottom:14px;text-transform:uppercase;
+    height:18px;
+  }
+  .podium-block{
+    width:100%;background:linear-gradient(180deg,var(--night2),var(--night));
+    border:1px solid var(--faint);
+    border-top:2px solid var(--gold-deep);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding-top:16px;
+    position:relative;
+  }
+  .podium-name{
+    font-family:var(--serif);font-style:italic;font-size:14px;color:var(--muted);
+    writing-mode:vertical-rl;text-orientation:mixed;
+  }
+  .timeline{display:flex;flex-direction:column;gap:24px;max-width:700px;margin:60px auto 0}
+  .tl-item{display:grid;grid-template-columns:90px 1fr;gap:24px;align-items:start;border-top:1px solid var(--faint);padding-top:20px}
+  .tl-year{font-family:var(--serif);font-size:32px;color:var(--gold);line-height:1}
+  .tl-text{font-size:15px;color:var(--cream)}
+  .tl-text strong{color:var(--cyan-soft);font-weight:500}
+
+  /* ===== Closing ===== */
+  #closing{text-align:center;flex-direction:column;min-height:80vh}
+  .quote{
+    font-family:var(--serif);font-style:italic;font-weight:400;
+    font-size:clamp(24px,3.5vw,42px);line-height:1.4;
+    max-width:760px;margin:0 auto;color:var(--cream);
+    position:relative;padding:40px 0;
+  }
+  .quote::before,.quote::after{
+    font-family:var(--serif);font-size:80px;color:var(--gold);
+    line-height:0;position:absolute;
+  }
+  .quote::before{content:'"';top:50px;left:-10px}
+  .quote::after{content:'"';bottom:0;right:-10px}
+  .quote-author{
+    font-family:var(--mono);font-size:12px;letter-spacing:.4em;
+    color:var(--gold);margin-top:30px;text-transform:uppercase;
+  }
+  .credits{
+    font-family:var(--mono);font-size:10px;letter-spacing:.3em;
+    color:var(--faint);margin-top:80px;text-transform:uppercase;
+  }
+
+  /* ===== Reveal utility ===== */
+  .reveal-line{overflow:hidden;display:block}
+  .reveal-line>span{display:inline-block;transform:translateY(100%)}
+  .fade-up{opacity:0;transform:translateY(40px)}
+
+  p.body{
+    font-size:clamp(15px,1.4vw,18px);color:var(--cream);
+    margin-bottom:20px;max-width:560px;
+  }
+  p.body strong{color:var(--gold-bright);font-weight:500}
+  p.body em{color:var(--cyan-soft);font-style:italic}
+
+  .section-num{
+    position:absolute;top:80px;left:8vw;
+    font-family:var(--mono);font-size:11px;letter-spacing:.4em;
+    color:var(--faint);
+  }
+  .section-num strong{color:var(--gold)}
+
+  /* SVG shared */
+  svg .glow{filter:drop-shadow(0 0 6px currentColor)}
+
+  @media (max-width:860px){
+    #ch1 .container,.split-grid{grid-template-columns:1fr;gap:40px}
+    section{padding:100px 6vw}
+    #navdots{display:none}
+    .parity-stage{height:340px}
+    body{cursor:auto}
+    .cursor-dot,.cursor-ring{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Inizializzazione · Parità</div>
+  <div class="loader-cn">CO-60 · β⁻ · 1956</div>
+</div>
+
+<!-- CURSOR -->
+<div class="cursor-dot" id="cdot"></div>
+<div class="cursor-ring" id="cring"></div>
+
+<!-- BACKGROUND -->
+<canvas id="particles"></canvas>
+
+<!-- PROGRESS + NAV -->
+<div id="progress"></div>
+<nav id="navdots">
+  <a class="navdot active" data-label="Cover" href="#cover"></a>
+  <a class="navdot" data-label="Origini" href="#ch1"></a>
+  <a class="navdot" data-label="Berkeley" href="#ch2"></a>
+  <a class="navdot" data-label="Parità" href="#ch3"></a>
+  <a class="navdot" data-label="Nobel" href="#ch4"></a>
+  <a class="navdot" data-label="Fine" href="#closing"></a>
+</nav>
+
+<!-- COVER -->
+<section id="cover">
+  <svg class="cover-atom" viewBox="0 0 600 600" id="coverAtom">
+    <defs>
+      <radialGradient id="nucGrad">
+        <stop offset="0%" stop-color="#f5c542"/>
+        <stop offset="100%" stop-color="#c41e3a"/>
+      </radialGradient>
+    </defs>
+    <g transform="translate(300,300)">
+      <circle r="14" fill="url(#nucGrad)" class="glow" style="color:#f5c542"/>
+      <g class="orbit orbit1"><ellipse rx="220" ry="80" fill="none" stroke="rgba(212,175,55,.25)" stroke-width="1"/><circle r="5" fill="#00d4ff" cx="220" cy="0" class="glow" style="color:#00d4ff"/></g>
+      <g class="orbit orbit2"><ellipse rx="200" ry="200" fill="none" stroke="rgba(0,212,255,.18)" stroke-width="1" transform="rotate(60)"/><circle r="4" fill="#d4af37" class="glow" style="color:#d4af37"/></g>
+      <g class="orbit orbit3"><ellipse rx="180" ry="60" fill="none" stroke="rgba(196,30,58,.2)" stroke-width="1" transform="rotate(-30)"/><circle r="3" fill="#f8f5f0" cx="180" cy="0" class="glow" style="color:#f8f5f0"/></g>
+    </g>
+  </svg>
+
+  <div class="container" style="text-align:center">
+    <h1 class="cover-title" id="coverTitle">Chien-Shiung Wu</h1>
+    <p class="cover-sub" id="coverSub">La scienziata che dimostrò che la natura distingue<br>la destra dalla sinistra — e non ricevette il Nobel.</p>
+    <div class="cover-dates">
+      <span id="y1912">1912</span><span class="dash"></span><span id="y1997">1997</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scorri</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 1 — ORIGINI ==================== -->
+<section id="ch1">
+  <div class="section-num">CAPITOLO <strong>01</strong> / LE ORIGINI</div>
+
+  <div class="container">
+    <div class="left-col">
+      <span class="kicker">Liuhe · Jiangsu · Cina</span>
+      <div class="year-hero">
+        1912<span class="fill" id="yearFill">1912</span>
+      </div>
+      <p class="body" style="margin-top:30px">
+        C'era una volta una bambina cinese di nome <strong>Chien-Shiung</strong>.
+        Suo padre aveva fondato una scuola per sole ragazze in un paese dove molti
+        pensavano che non ne avessero bisogno, e lei ci studiò.
+      </p>
+    </div>
+
+    <div class="right-col">
+      <!-- Mini illustration: father's school / Chinese gate -->
+      <svg viewBox="0 0 400 400" style="width:100%;max-width:380px;display:block;margin:0 auto">
+        <defs>
+          <linearGradient id="gateGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#c41e3a"/>
+            <stop offset="100%" stop-color="#8a1424"/>
+          </linearGradient>
+          <linearGradient id="tileGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3a4d6e"/>
+            <stop offset="100%" stop-color="#1a2438"/>
+          </linearGradient>
+        </defs>
+        <!-- moon -->
+        <circle cx="320" cy="80" r="34" fill="#f8f5f0" opacity=".12" class="moon"/>
+        <!-- ground -->
+        <rect x="0" y="340" width="400" height="60" fill="url(#tileGrad)" opacity=".6"/>
+        <line x1="0" y1="340" x2="400" y2="340" stroke="#d4af37" stroke-width=".5" opacity=".5"/>
+        <!-- gate pillars -->
+        <g class="gate">
+          <rect x="80" y="180" width="24" height="160" fill="url(#gateGrad)"/>
+          <rect x="296" y="180" width="24" height="160" fill="url(#gateGrad)"/>
+          <!-- roof (pagoda curve) -->
+          <path d="M 60 180 Q 200 120 340 180 L 320 190 Q 200 140 80 190 Z" fill="url(#gateGrad)"/>
+          <path d="M 90 165 Q 200 110 310 165 L 300 175 Q 200 130 100 175 Z" fill="#8a1424"/>
+          <!-- plaque -->
+          <rect x="160" y="230" width="80" height="50" fill="#0a0e1a" stroke="#d4af37" stroke-width="1"/>
+          <text x="200" y="262" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#d4af37" letter-spacing="1">MING DE</text>
+          <!-- threshold -->
+          <rect x="104" y="320" width="192" height="6" fill="#d4af37" opacity=".6"/>
+        </g>
+        <!-- floating particles -->
+        <g class="gate-particles">
+          <circle cx="200" cy="100" r="2" fill="#f5c542" opacity=".6"/>
+          <circle cx="150" cy="140" r="1.5" fill="#00d4ff" opacity=".5"/>
+          <circle cx="260" cy="120" r="1.5" fill="#f8f5f0" opacity=".4"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 2 — BERKELEY & MANHATTAN ==================== -->
+<section id="ch2">
+  <div class="section-num">CAPITOLO <strong>02</strong> / BERKELEY · MANHATTAN</div>
+  <div class="container">
+    <div class="split-grid">
+      <div class="left-col">
+        <span class="kicker">1936 · University of California, Berkeley</span>
+        <h2 style="font-size:clamp(40px,6vw,80px);margin-bottom:30px">
+          <span class="reveal-line"><span>Il ciclotrone</span></span><br>
+          <span class="reveal-line"><span><em style="font-style:italic;color:var(--cyan-soft)">e la guerra</em></span></span>
+        </h2>
+        <p class="body fade-up">
+          Nel <strong>1936</strong> si iscrisse a Berkeley con un'idea precisa:
+          <strong>fare fisica</strong>. Lavorò accanto al ciclotrone di
+          <em>Ernest Lawrence</em> e nel <strong>1940</strong> prese il dottorato.
+        </p>
+        <p class="body fade-up">
+          Negli anni Quaranta le università americane davano alle donne soprattutto
+          incarichi di ripiego. Wu fu <strong>la prima donna</strong> a insegnare
+          nel dipartimento di fisica di <em>Princeton</em>.
+        </p>
+        <p class="body fade-up">
+          Nel <strong>1944</strong> passò a <em>Columbia</em>, dove lavorò al
+          <strong>Progetto Manhattan</strong> sui rivelatori di radiazioni e sulla
+          separazione degli isotopi dell'<em>uranio</em>. Nonostante i risultati,
+          diventò professore ordinario solo nel <strong>1958</strong>.
+        </p>
+      </div>
+
+      <div class="right-col">
+        <!-- Cyclotron SVG -->
+        <div class="cyclotron-wrap">
+          <svg viewBox="0 0 520 520" id="cyclotron">
+            <defs>
+              <radialGradient id="cycCore" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="60%" stop-color="#0078a8"/>
+                <stop offset="100%" stop-color="#001a26"/>
+              </radialGradient>
+              <linearGradient id="dees" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#d4af37"/>
+                <stop offset="100%" stop-color="#8a6d1e"/>
+              </linearGradient>
+            </defs>
+            <!-- outer ring -->
+            <circle cx="260" cy="260" r="220" fill="none" stroke="rgba(248,245,240,.08)" stroke-width="1"/>
+            <circle cx="260" cy="260" r="200" fill="none" stroke="rgba(0,212,255,.15)" stroke-width="1" stroke-dasharray="2 6"/>
+            <!-- two D-shaped magnets (dees) -->
+            <path d="M 260 80 A 180 180 0 0 0 260 440 L 260 80 Z" fill="url(#dees)" opacity=".12" stroke="url(#dees)" stroke-width="2"/>
+            <path d="M 260 80 A 180 180 0 0 1 260 440 L 260 80 Z" fill="rgba(196,30,58,.08)" stroke="#c41e3a" stroke-width="2"/>
+            <!-- center gap -->
+            <line x1="260" y1="80" x2="260" y2="440" stroke="#0a0e1a" stroke-width="3"/>
+            <!-- core -->
+            <circle cx="260" cy="260" r="22" fill="url(#cycCore)" class="glow" style="color:#00d4ff"/>
+            <!-- spiral path -->
+            <path id="spiral" d="M 260 260 m 0 -10 a 10 10 0 1 1 -0.1 0 m 0.1 0 m 0 10 a 30 30 0 1 0 -0.1 0 m 0.1 -10 a 60 60 0 1 1 -0.1 0 m 0.1 0 a 100 100 0 1 0 -0.1 0 m 0.1 -10 a 140 140 0 1 1 -0.1 0 m 0.1 0 a 180 180 0 1 0 -0.1 0" fill="none" stroke="#f5c542" stroke-width="1.5" opacity=".7" stroke-dasharray="800" stroke-dashoffset="800"/>
+            <!-- particle on spiral -->
+            <circle id="cycParticle" r="4" fill="#f5c542" class="glow" style="color:#f5c542"/>
+            <!-- labels -->
+            <text x="160" y="260" font-family="'JetBrains Mono',monospace" font-size="10" fill="#d4af37" opacity=".6">D₁</text>
+            <text x="350" y="260" font-family="'JetBrains Mono',monospace" font-size="10" fill="#c41e3a" opacity=".6">D₂</text>
+            <text x="260" y="500" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(248,245,240,.4)" letter-spacing="2">CICLOTRONE · LAWRENCE</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 3 — PARITÀ (CLIMAX) ==================== -->
+<section id="ch3">
+  <div class="section-num">CAPITOLO <strong>03</strong> / L'ESPERIMENTO DELLA PARITÀ</div>
+  <div class="container">
+    <div style="text-align:center;margin-bottom:30px">
+      <span class="kicker">1956 · National Bureau of Standards · Washington</span>
+      <h2 style="font-size:clamp(36px,5vw,68px);margin-top:20px">
+        <span class="reveal-line"><span>Cobalto-60, quasi</span></span><br>
+        <span class="reveal-line"><span><em style="font-style:italic;color:var(--cyan-soft)">allo zero assoluto</em></span></span>
+      </h2>
+    </div>
+
+    <!-- Parity stage: nucleus + spin + asymmetric electron emission + mirror -->
+    <div class="parity-stage" id="parityStage">
+      <svg viewBox="0 0 900 480" id="paritySvg" style="width:100%;height:100%">
+        <defs>
+          <radialGradient id="co60" cx="50%" cy="50%">
+            <stop offset="0%" stop-color="#7dd3fc"/>
+            <stop offset="40%" stop-color="#0ea5e9"/>
+            <stop offset="100%" stop-color="#0c4a6e"/>
+          </radialGradient>
+          <radialGradient id="electronGlow">
+            <stop offset="0%" stop-color="#f5c542" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#f5c542" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="spinArrow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00d4ff"/>
+            <stop offset="100%" stop-color="#0078a8"/>
+          </linearGradient>
+          <marker id="arrUp" markerWidth="10" markerHeight="10" refX="5" refY="2" orient="auto">
+            <path d="M 0 8 L 5 0 L 10 8 Z" fill="#00d4ff"/>
+          </marker>
+          <marker id="arrDown" markerWidth="10" markerHeight="10" refX="5" refY="8" orient="auto">
+            <path d="M 0 0 L 5 8 L 10 0 Z" fill="#f5c542"/>
+          </marker>
+        </defs>
+
+        <!-- Central vertical spin axis line -->
+        <line x1="300" y1="60" x2="300" y2="420" stroke="rgba(0,212,255,.2)" stroke-width="1" stroke-dasharray="4 4"/>
+
+        <!-- Spin vector (up) -->
+        <g class="spin-vector">
+          <line x1="300" y1="200" x2="300" y2="100" stroke="url(#spinArrow)" stroke-width="3" marker-end="url(#arrUp)"/>
+          <text x="312" y="140" font-family="'JetBrains Mono',monospace" font-size="11" fill="#00d4ff">spin ↑</text>
+        </g>
+
+        <!-- Co-60 nucleus -->
+        <g transform="translate(300,240)">
+          <circle r="42" fill="url(#co60)" class="glow" style="color:#0ea5e9"/>
+          <circle r="42" fill="none" stroke="#7dd3fc" stroke-width="1" opacity=".5" class="pulse-ring"/>
+          <text y="6" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="20" fill="#f8f5f0" font-weight="600">⁶⁰Co</text>
+          <text y="60" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(248,245,240,.5)" letter-spacing="2">β⁻ decay</text>
+        </g>
+
+        <!-- Electrons emitted preferentially DOWNWARD (opposite to spin) -->
+        <g class="electrons-down">
+          <!-- glow cones -->
+          <path d="M 300 240 L 220 420 L 380 420 Z" fill="rgba(245,197,66,.08)"/>
+          <!-- electron dots with trails -->
+          <g class="e e1"><circle r="3" fill="#f5c542"/><line x1="0" y1="0" x2="0" y2="-30" stroke="#f5c542" stroke-width="1" opacity=".4"/></g>
+          <g class="e e2"><circle r="3" fill="#f5c542"/><line x1="0" y1="0" x2="0" y2="-30" stroke="#f5c542" stroke-width="1" opacity=".4"/></g>
+          <g class="e e3"><circle r="3" fill="#f5c542"/><line x1="0" y1="0" x2="0" y2="-30" stroke="#f5c542" stroke-width="1" opacity=".4"/></g>
+          <g class="e e4"><circle r="3" fill="#f5c542"/><line x1="0" y1="0" x2="0" y2="-30" stroke="#f5c542" stroke-width="1" opacity=".4"/></g>
+          <g class="e e5"><circle r="3" fill="#f5c542"/><line x1="0" y1="0" x2="0" y2="-30" stroke="#f5c542" stroke-width="1" opacity=".4"/></g>
+        </g>
+
+        <!-- Few electrons up (rare) -->
+        <g class="electrons-up">
+          <g class="eu eu1"><circle r="2" fill="#f8f5f0" opacity=".4"/></g>
+          <g class="eu eu2"><circle r="2" fill="#f8f5f0" opacity=".3"/></g>
+        </g>
+
+        <!-- Labels for asymmetry -->
+        <text x="300" y="450" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-size="14" fill="#f5c542">elettroni ↓ preferiti</text>
+        <text x="300" y="75" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-size="13" fill="rgba(248,245,240,.35)">rari ↑</text>
+
+        <!-- ===== Mirror demonstration on right ===== -->
+        <!-- vertical mirror line -->
+        <line x1="560" y1="40" x2="560" y2="440" stroke="rgba(212,175,55,.4)" stroke-width="1" stroke-dasharray="6 4"/>
+        <text x="560" y="35" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#d4af37" letter-spacing="2">SPECCHIO</text>
+
+        <!-- Mirrored version -->
+        <g class="mirror-world" opacity=".5">
+          <!-- mirrored spin axis -->
+          <line x1="820" y1="60" x2="820" y2="420" stroke="rgba(0,212,255,.15)" stroke-width="1" stroke-dasharray="4 4"/>
+          <!-- mirrored spin (still up — spin is axial vector, unchanged by mirror) -->
+          <line x1="820" y1="200" x2="820" y2="100" stroke="url(#spinArrow)" stroke-width="3" marker-end="url(#arrUp)"/>
+          <text x="832" y="140" font-family="'JetBrains Mono',monospace" font-size="11" fill="#00d4ff">spin ↑</text>
+          <!-- mirrored nucleus -->
+          <g transform="translate(820,240)">
+            <circle r="42" fill="url(#co60)"/>
+            <text y="6" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="20" fill="#f8f5f0" font-weight="600">⁶⁰Co</text>
+          </g>
+          <!-- mirrored electrons: should go DOWN (same) but if parity conserved would mirror to UP -->
+          <!-- Show the WRONG prediction crossed out -->
+          <g class="wrong-prediction">
+            <line x1="820" y1="240" x2="820" y2="100" stroke="#c41e3a" stroke-width="2" marker-end="url(#arrDown)" opacity=".5"/>
+            <text x="832" y="380" font-family="'Cormorant Garamond',serif" font-style="italic" font-size="13" fill="#c41e3a">predizione parità ✗</text>
+          </g>
+        </g>
+        <text x="820" y="450" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="rgba(196,30,58,.7)" letter-spacing="2">VIOLATA</text>
+
+        <!-- connecting label -->
+        <text x="430" y="240" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-style="italic" font-size="13" fill="rgba(248,245,240,.4)">≠ riflesso</text>
+      </svg>
+    </div>
+
+    <p class="body fade-up" style="max-width:760px;margin:30px auto 0;text-align:center">
+      Nel <strong>1956</strong> <strong>Tsung-Dao Lee</strong> e <strong>Chen Ning Yang</strong>
+      ipotizzarono che la <em>conservazione della parità</em>, data per certa da tutti, non
+      valesse per le interazioni deboli. Wu lo verificò al <em>National Bureau of Standards
+      di Washington</em>: raffreddò il cobalto 60 quasi allo zero assoluto e osservò da che
+      parte uscivano gli elettroni.
+    </p>
+
+    <div class="parity-reveal" id="parityReveal">
+      <span class="word">Uscivano</span> <span class="word">soprattutto</span> <span class="word">in</span> <span class="word">direzione</span> <span class="word">opposta</span> <span class="word">allo</span> <span class="word">spin</span> <span class="word">del</span> <span class="word">nucleo,</span> <span class="word">quindi</span> <span class="word">la</span> <span class="word">natura</span> <span class="word">distingue</span> <span class="word">la</span> <span class="word">destra</span> <span class="word">dalla</span> <span class="word">sinistra.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 4 — NOBEL & EREDITÀ ==================== -->
+<section id="ch4">
+  <div class="section-num">CAPITOLO <strong>04</strong> / IL NOBEL CHE NON ARRIVÒ</div>
+  <div class="container">
+    <span class="kicker" style="margin-bottom:20px">1957 · Stoccolma · Il podio</span>
+
+    <div class="medal-wrap" id="medalWrap">
+      <svg viewBox="0 0 280 280" id="medal">
+        <defs>
+          <radialGradient id="medalGrad" cx="35%" cy="30%">
+            <stop offset="0%" stop-color="#fff6d5"/>
+            <stop offset="40%" stop-color="#f5c542"/>
+            <stop offset="80%" stop-color="#d4af37"/>
+            <stop offset="100%" stop-color="#6b5414"/>
+          </radialGradient>
+          <radialGradient id="medalShine">
+            <stop offset="0%" stop-color="#fff" stop-opacity=".8"/>
+            <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- ribbon -->
+        <path d="M 110 0 L 100 60 L 140 80 L 180 60 L 170 0 Z" fill="#0c4a6e"/>
+        <path d="M 115 0 L 108 55 L 140 72 L 172 55 L 165 0 Z" fill="#1e6b9e"/>
+        <!-- medal body -->
+        <circle cx="140" cy="160" r="100" fill="url(#medalGrad)" stroke="#8a6d1e" stroke-width="2" class="glow" style="color:#f5c542"/>
+        <!-- inner ring -->
+        <circle cx="140" cy="160" r="82" fill="none" stroke="#8a6d1e" stroke-width="1" opacity=".5"/>
+        <circle cx="140" cy="160" r="78" fill="none" stroke="#fff6d5" stroke-width=".5" opacity=".4"/>
+        <!-- engraved text -->
+        <text x="140" y="150" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="20" fill="#5a4410" font-weight="700" font-style="italic">Nobel</text>
+        <text x="140" y="175" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="14" fill="#5a4410">1957</text>
+        <line x1="100" y1="185" x2="180" y2="185" stroke="#5a4410" stroke-width=".5"/>
+        <text x="140" y="205" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5a4410" letter-spacing="1">LEE · YANG</text>
+        <!-- shine -->
+        <ellipse cx="115" cy="135" rx="35" ry="20" fill="url(#medalShine)"/>
+        <!-- crack / void symbol -->
+        <g class="medal-void">
+          <text x="140" y="160" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="60" fill="#0a0e1a" opacity="0" font-weight="300">×</text>
+        </g>
+      </svg>
+    </div>
+
+    <p class="body fade-up" style="max-width:680px;margin:0 auto 20px;text-align:center;font-size:clamp(16px,1.8vw,22px)">
+      Nel <strong>1957</strong> il Nobel andò a <em>Lee</em> e <em>Yang</em>.
+    </p>
+    <p class="body fade-up" style="max-width:680px;margin:0 auto;text-align:center;font-family:var(--serif);font-style:italic;font-size:clamp(20px,2.4vw,30px);color:var(--gold)">
+      Il Nobel non le arrivò mai.
+    </p>
+
+    <div class="timeline">
+      <div class="tl-item fade-up">
+        <div class="tl-year">1975</div>
+        <div class="tl-text">Lei fu la <strong>prima donna presidente dell'American Physical Society</strong>, nel 1975.</div>
+      </div>
+      <div class="tl-item fade-up">
+        <div class="tl-year">1978</div>
+        <div class="tl-text">e nel 1978 <strong>vinse il primo Premio Wolf per la fisica</strong>.</div>
+      </div>
+      <div class="tl-item fade-up">
+        <div class="tl-year">1997</div>
+        <div class="tl-text">Muore a New York a 84 anni. Le resta il soprannome che le diedero a Berkeley: <strong>"First Lady of Physics"</strong>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CLOSING ==================== -->
+<section id="closing">
+  <div class="container">
+    <p class="quote" id="closingQuote">
+      Siamo troppo abituati ad accettare ciò che è stabilito.
+      Se anche un solo nuovo fatto è in conflitto, dobbiamo seguirlo.
+    </p>
+    <div class="quote-author">— Chien-Shiung Wu</div>
+
+    <div class="credits">
+      Una vita di parità spezzata · 1912 – 1997 · fisica nucleare
+    </div>
+  </div>
+</section>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+/* ================== CHIEN-SHIUNG WU · INTERACTIVE SCRIPT ================== */
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------- Loader ---------- */
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('done'), 600);
+});
+
+/* ---------- Custom cursor ---------- */
+const cdot = document.getElementById('cdot');
+const cring = document.getElementById('cring');
+let mx = window.innerWidth/2, my = window.innerHeight/2;
+let rx = mx, ry = my;
+window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function cursorLoop(){
+  gsap.set(cdot, {x:mx, y:my});
+  rx += (mx - rx) * 0.18;
+  ry += (my - ry) * 0.18;
+  gsap.set(cring, {x:rx, y:ry});
+  requestAnimationFrame(cursorLoop);
+}
+cursorLoop();
+document.querySelectorAll('a, .navdot, .cursor-target').forEach(el => {
+  el.addEventListener('mouseenter', () => cring.classList.add('hover'));
+  el.addEventListener('mouseleave', () => cring.classList.remove('hover'));
+});
+
+/* ---------- Particle canvas ---------- */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function initParticles(){
+  particles = [];
+  const n = Math.min(140, Math.floor(W*H/14000));
+  for(let i=0;i<n;i++){
+    particles.push({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.25,
+      vy: (Math.random()-0.5)*0.25,
+      r: Math.random()*1.6 + 0.3,
+      hue: Math.random() < 0.7 ? 'gold' : (Math.random()<0.5 ? 'cyan' : 'cream'),
+      a: Math.random()*0.5 + 0.1,
+      tw: Math.random()*Math.PI*2
+    });
+  }
+}
+initParticles();
+
+function drawParticles(){
+  ctx.clearRect(0,0,W,H);
+  for(const p of particles){
+    p.x += p.vx; p.y += p.vy; p.tw += 0.02;
+    if(p.x < 0) p.x = W; if(p.x > W) p.x = 0;
+    if(p.y < 0) p.y = H; if(p.y > H) p.y = 0;
+    const alpha = p.a * (0.5 + 0.5*Math.sin(p.tw));
+    const col = p.hue === 'gold' ? `rgba(245,197,66,${alpha})`
+              : p.hue === 'cyan' ? `rgba(0,212,255,${alpha})`
+              : `rgba(248,245,240,${alpha*0.6})`;
+    ctx.beginPath();
+    ctx.fillStyle = col;
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  // connect close particles
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if(d < 110){
+        ctx.strokeStyle = `rgba(212,175,55,${(1-d/110)*0.06})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ---------- Progress bar + nav dots ---------- */
+const progress = document.getElementById('progress');
+const navdots = document.querySelectorAll('.navdot');
+const sections = ['cover','ch1','ch2','ch3','ch4','closing'];
+
+ScrollTrigger.create({
+  start: 0, end: 'max',
+  onUpdate: self => {
+    gsap.set(progress, { width: (self.progress*100) + '%' });
+  }
+});
+
+sections.forEach((id, i) => {
+  ScrollTrigger.create({
+    trigger: '#' + id,
+    start: 'top 50%',
+    end: 'bottom 50%',
+    onToggle: self => {
+      if(self.isActive){
+        navdots.forEach(d => d.classList.remove('active'));
+        navdots[i].classList.add('active');
+      }
+    }
+  });
+});
+
+/* ---------- COVER animations ---------- */
+// split title into chars
+const titleEl = document.getElementById('coverTitle');
+const titleText = titleEl.textContent;
+titleEl.innerHTML = '';
+[...titleText].forEach((c,i) => {
+  const span = document.createElement('span');
+  span.className = 'ch';
+  span.textContent = c === ' ' ? '\u00A0' : c;
+  titleEl.appendChild(span);
+});
+
+const coverTl = gsap.timeline({ delay: 1 });
+coverTl
+  .to('#coverTitle .ch', {
+    opacity: 1, y: 0, rotation: 0,
+    duration: 0.9, stagger: 0.04, ease: 'power3.out'
+  }, '-=0.6')
+  .from('#coverSub', { opacity: 0, y: 30, duration: 1, ease: 'power2.out' }, '-=0.3')
+  .from('#y1912', { opacity: 0, x: -20, duration: 0.6 }, '-=0.4')
+  .from('#y1997', { opacity: 0, x: 20, duration: 0.6 }, '<')
+  .from('.scroll-hint', { opacity: 0, y: 20, duration: 0.8 }, '-=0.2');
+
+// Atom orbits — infinite
+gsap.to('#coverAtom .orbit1', { rotation: 360, transformOrigin: 'center', duration: 12, repeat: -1, ease: 'none' });
+gsap.to('#coverAtom .orbit2', { rotation: -360, transformOrigin: 'center', duration: 18, repeat: -1, ease: 'none' });
+gsap.to('#coverAtom .orbit3', { rotation: 360, transformOrigin: 'center', duration: 9, repeat: -1, ease: 'none' });
+// electron on orbit1 already at cx=220 — rotate the whole orbit g moves it
+
+/* parallax cover atom on mouse */
+window.addEventListener('mousemove', e => {
+  const cx = (e.clientX / window.innerWidth - 0.5) * 30;
+  const cy = (e.clientY / window.innerHeight - 0.5) * 30;
+  gsap.to('#coverAtom', { x: cx, y: cy, duration: 1.2, ease: 'power2.out' });
+});
+
+/* ---------- CHAPTER 1 ---------- */
+gsap.from('#ch1 .kicker', {
+  scrollTrigger: { trigger: '#ch1', start: 'top 70%' },
+  opacity: 0, y: 20, duration: 0.8
+});
+gsap.from('#ch1 .year-hero', {
+  scrollTrigger: { trigger: '#ch1', start: 'top 65%' },
+  opacity: 0, x: -60, duration: 1.2, ease: 'power3.out'
+});
+// year fill animation
+gsap.to('#yearFill', {
+  scrollTrigger: { trigger: '#ch1', start: 'top 60%', end: 'center center', scrub: 1 },
+  clipPath: 'inset(0% 0 0 0)'
+});
+gsap.utils.toArray('#ch1 .body').forEach((el, i) => {
+  gsap.to(el, {
+    scrollTrigger: { trigger: el, start: 'top 85%' },
+    opacity: 1, y: 0, duration: 0.9, delay: i*0.1, ease: 'power2.out'
+  });
+});
+// gate drawing
+gsap.from('#ch1 .gate', {
+  scrollTrigger: { trigger: '#ch1 .right-col', start: 'top 75%' },
+  opacity: 0, scale: 0.9, duration: 1.2, ease: 'power2.out'
+});
+gsap.from('#ch1 .moon', {
+  scrollTrigger: { trigger: '#ch1 .right-col', start: 'top 75%' },
+  opacity: 0, y: -30, duration: 1, delay: 0.4
+});
+
+/* ---------- CHAPTER 2 ---------- */
+gsap.from('#ch2 .kicker', {
+  scrollTrigger: { trigger: '#ch2', start: 'top 70%' },
+  opacity: 0, y: 20, duration: 0.8
+});
+gsap.utils.toArray('#ch2 .reveal-line > span').forEach((el) => {
+  gsap.to(el, {
+    scrollTrigger: { trigger: el, start: 'top 80%' },
+    y: 0, duration: 1, ease: 'power3.out'
+  });
+});
+gsap.utils.toArray('#ch2 .fade-up').forEach((el, i) => {
+  gsap.to(el, {
+    scrollTrigger: { trigger: el, start: 'top 88%' },
+    opacity: 1, y: 0, duration: 0.9, delay: i*0.08, ease: 'power2.out'
+  });
+});
+// cyclotron
+gsap.from('#cyclotron', {
+  scrollTrigger: { trigger: '#ch2 .right-col', start: 'top 75%' },
+  opacity: 0, scale: 0.85, rotation: -20, duration: 1.4, ease: 'power2.out'
+});
+// spiral path draw
+gsap.to('#spiral', {
+  scrollTrigger: { trigger: '#ch2 .right-col', start: 'top 75%' },
+  strokeDashoffset: 0, duration: 2.5, ease: 'power2.inOut'
+});
+// particle traveling on spiral (use motionPath fallback — approximate with manual)
+const cycParticle = document.getElementById('cycParticle');
+const spiralLen = 800;
+let cycT = 0;
+function cycLoop(){
+  cycT = (cycT + 0.004) % 1;
+  const path = document.getElementById('spiral');
+  if(path && path.getTotalLength){
+    const L = path.getTotalLength();
+    const pt = path.getPointAtLength(cycT * L);
+    gsap.set(cycParticle, { x: pt.x, y: pt.y });
+  }
+  requestAnimationFrame(cycLoop);
+}
+cycLoop();
+// dee subtle pulse
+gsap.to('#cyclotron path', {
+  opacity: '+=0.05', duration: 1.2, repeat: -1, yoyo: true, ease: 'sine.inOut', stagger: 0.3
+});
+
+/* ---------- CHAPTER 3 — THE CLIMAX ---------- */
+gsap.from('#ch3 .kicker', {
+  scrollTrigger: { trigger: '#ch3', start: 'top 70%' },
+  opacity: 0, y: 20, duration: 0.8
+});
+gsap.utils.toArray('#ch3 .reveal-line > span').forEach((el) => {
+  gsap.to(el, {
+    scrollTrigger: { trigger: el, start: 'top 85%' },
+    y: 0, duration: 1, ease: 'power3.out'
+  });
+});
+gsap.from('#parityStage', {
+  scrollTrigger: { trigger: '#parityStage', start: 'top 80%' },
+  opacity: 0, scale: 0.9, duration: 1.4, ease: 'power2.out'
+});
+
+// nucleus pulse
+gsap.to('#paritySvg .pulse-ring', {
+  scale: 1.8, opacity: 0, duration: 2, repeat: -1, transformOrigin: 'center', ease: 'power2.out'
+});
+
+// electrons falling down — stagger bursts
+const eDown = ['#paritySvg .e1','#paritySvg .e2','#paritySvg .e3','#paritySvg .e4','#paritySvg .e5'];
+eDown.forEach((sel, i) => {
+  const el = document.querySelector(sel);
+  if(!el) return;
+  // start near nucleus (300,240) -> travel downward to random point
+  const targets = [
+    {x: -40, y: 150}, {x: 30, y: 170}, {x: -20, y: 180}, {x: 50, y: 160}, {x: 0, y: 175}
+  ];
+  gsap.set(el, { x: 0, y: 0, attr: { transform: 'translate(300,240)' } });
+  gsap.timeline({
+    scrollTrigger: { trigger: '#parityStage', start: 'top 60%' },
+    repeat: -1, delay: i*0.4
+  })
+  .to(el, { x: targets[i].x, y: targets[i].y, opacity: 1, duration: 1.2, ease: 'power1.in' })
+  .to(el, { opacity: 0, duration: 0.4 }, '+=0.1');
+});
+
+// rare electrons up
+['#paritySvg .eu1','#paritySvg .eu2'].forEach((sel, i) => {
+  const el = document.querySelector(sel);
+  if(!el) return;
+  gsap.set(el, { attr: { transform: 'translate(300,240)' } });
+  gsap.timeline({
+    scrollTrigger: { trigger: '#parityStage', start: 'top 60%' },
+    repeat: -1, delay: 1.5 + i*0.8
+  })
+  .to(el, { y: -130, opacity: 0.5, duration: 1.8, ease: 'power1.in' })
+  .to(el, { opacity: 0, duration: 0.4 });
+});
+
+// mirror world fade in
+gsap.to('#paritySvg .mirror-world', {
+  scrollTrigger: { trigger: '#parityStage', start: 'top 55%' },
+  opacity: 0.5, duration: 1.2
+});
+
+// wrong-prediction red flash
+gsap.fromTo('#paritySvg .wrong-prediction',
+  { opacity: 0 },
+  {
+    scrollTrigger: { trigger: '#parityStage', start: 'top 50%' },
+    opacity: 0.6, duration: 1, delay: 0.8
+  }
+);
+
+// body + lab panel
+gsap.utils.toArray('#ch3 .fade-up').forEach((el) => {
+  gsap.to(el, {
+    scrollTrigger: { trigger: el, start: 'top 88%' },
+    opacity: 1, y: 0, duration: 1, ease: 'power2.out'
+  });
+});
+
+// THE BIG REVEAL — words stagger in
+gsap.utils.toArray('#parityReveal .word').forEach((el, i) => {
+  gsap.to(el, {
+    scrollTrigger: { trigger: '#parityReveal', start: 'top 75%' },
+    opacity: 1, y: 0, duration: 0.6, delay: i*0.12, ease: 'power2.out'
+  });
+});
+
+// background red glow intensifies at reveal
+gsap.to('#ch3', {
+  scrollTrigger: { trigger: '#parityReveal', start: 'top 70%' },
+  background: 'radial-gradient(ellipse at center, rgba(196,30,58,.18), transparent 60%), var(--void)',
+  duration: 2
+});
+
+/* ---------- CHAPTER 4 ---------- */
+gsap.from('#ch4 .kicker', {
+  scrollTrigger: { trigger: '#ch4', start: 'top 70%' },
+  opacity: 0, y: 20, duration: 0.8
+});
+// medal entrance + gentle rotation
+gsap.from('#medalWrap', {
+  scrollTrigger: { trigger: '#medalWrap', start: 'top 80%' },
+  opacity: 0, y: -80, scale: 0.7, duration: 1.6, ease: 'power3.out'
+});
+gsap.to('#medal', {
+  scrollTrigger: { trigger: '#medalWrap', start: 'top 80%' },
+  rotation: 8, duration: 4, yoyo: true, repeat: -1, ease: 'sine.inOut', transformOrigin: 'center'
+});
+// "void" cross flicker over medal (the Nobel that never came)
+gsap.to('#medal .medal-void text', {
+  scrollTrigger: { trigger: '#medalWrap', start: 'top 70%' },
+  opacity: 0.85, duration: 0.3, delay: 1.5,
+  repeat: 3, repeatDelay: 0.15, yoyo: true
+});
+
+gsap.utils.toArray('#ch4 .fade-up').forEach((el, i) => {
+  gsap.to(el, {
+    scrollTrigger: { trigger: el, start: 'top 88%' },
+    opacity: 1, y: 0, duration: 1, delay: i*0.15, ease: 'power2.out'
+  });
+});
+
+// timeline items draw-in
+gsap.utils.toArray('.tl-item').forEach((el, i) => {
+  gsap.from(el, {
+    scrollTrigger: { trigger: el, start: 'top 90%' },
+    opacity: 0, x: -30, duration: 0.9, delay: i*0.1, ease: 'power2.out'
+  });
+});
+
+/* ---------- CLOSING ---------- */
+gsap.from('#closingQuote', {
+  scrollTrigger: { trigger: '#closing', start: 'top 70%' },
+  opacity: 0, y: 40, duration: 1.4, ease: 'power2.out'
+});
+gsap.from('.quote-author', {
+  scrollTrigger: { trigger: '#closing', start: 'top 60%' },
+  opacity: 0, y: 20, duration: 1, delay: 0.5
+});
+gsap.from('.credits', {
+  scrollTrigger: { trigger: '#closing', start: 'top 50%' },
+  opacity: 0, duration: 1, delay: 1
+});
+
+// final breathe
+gsap.to('#closing .container', {
+  scrollTrigger: { trigger: '#closing', start: 'top 60%' },
+  scale: 1.02, duration: 4, ease: 'sine.inOut'
+});
+
+/* ---------- Reduced motion ---------- */
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  gsap.globalTimeline.timeScale(0.3);
+}
+</script>
+</body>
+</html>
